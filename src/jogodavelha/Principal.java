@@ -102,13 +102,13 @@ public class Principal {
 
         do {
             try {
-                escolha = Integer.parseInt(IO.readln("> "));
-                for (int i = 0; i < posicoesValidas.length && !escolhaEstaDisponivel; i++) {
+                escolha = Integer.parseInt(IO.readln("> ")) - 1;
+                for (int i = 0; i < verificarContadorPosicoesLivres(matrizAtual) && !escolhaEstaDisponivel; i++) {
                     if (escolha == posicoesValidas[i]){
                         escolhaEstaDisponivel = true;
                     }
                 }
-                if (escolha < 1 || escolha > 9){
+                if (escolha < 0 || escolha > 8){
                     IO.println("Por favor, digite um número entre 1 a 9.");
                     escolhaOk = false;
                 }
@@ -119,8 +119,6 @@ public class Principal {
                 else {
                     escolhaOk = true;
                 }
-
-                escolhaOk = true;
             }
             catch (NumberFormatException erroDigitouLetra) {
                 IO.println("Por favor, digite um número.");
@@ -151,7 +149,7 @@ public class Principal {
 
         imprimirJogoAtual(matrizAtual);
 
-        int escolha = verificarPosicaoJogadorValida(matrizAtual) - 1;
+        int escolha = verificarPosicaoJogadorValida(matrizAtual);
 
         return escolha;
     }
@@ -193,13 +191,13 @@ public class Principal {
 
         int contadorPosicoesLivres = verificarContadorPosicoesLivres(matrizAtual);
 
-        int jogadaLinearDoRobo = aleatorio.nextInt(contadorPosicoesLivres);
+        int indiceJogadaLinearDoRobo = aleatorio.nextInt(contadorPosicoesLivres);
 
-        IO.println("O robô jogou na posição %d".formatted(jogadaLinearDoRobo+1));
+        int[] posicoesDisponiveis = verificarPosicoesDisponiveis(matrizAtual);
 
-        imprimirJogoAtual(matrizAtual);
+        IO.println("O robô jogou na posição %d".formatted(posicoesDisponiveis[indiceJogadaLinearDoRobo]+1));
 
-        return jogadaLinearDoRobo;
+        return posicoesDisponiveis[indiceJogadaLinearDoRobo];
     }
 
     static void escreverJogadaNaMatrizAtual(int posicaoLinear, char[][] matrizAtual, char skin){
