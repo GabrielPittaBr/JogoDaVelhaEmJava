@@ -82,6 +82,18 @@ public class Principal {
         return new Jogador(nomeJogador, skinJogador);
     }
 
+    static void imprimirJogoAtual(char[][] matrizAtual) {
+        IO.println("Jogo atual:");
+        String linha = "";
+        for (int i = 0; i < 3; i++) {
+            linha = "| ";
+            for (int j = 0; j < 3; j++) {
+                linha += matrizAtual[i][j] + " | ";
+            }
+            IO.println(linha);
+        }
+    }
+
     static int verificarPosicaoJogadorValida(char[][] matrizAtual){
         int[] posicoesValidas = verificarPosicoesDisponiveis(matrizAtual);
         boolean escolhaOk;
@@ -91,7 +103,7 @@ public class Principal {
         do {
             try {
                 escolha = Integer.parseInt(IO.readln("> "));
-                for (int i = 0; i < posicoesValidas.length; i++) {
+                for (int i = 0; i < posicoesValidas.length && !escolhaEstaDisponivel; i++) {
                     if (escolha == posicoesValidas[i]){
                         escolhaEstaDisponivel = true;
                     }
@@ -137,15 +149,7 @@ public class Principal {
         IO.println("| 4 | 5 | 6 |");
         IO.println("| 7 | 8 | 9 |");
 
-        IO.println("Jogo atual:");
-        String linha = "";
-        for (int i = 0; i < 3; i++) {
-            linha = "| ";
-            for (int j = 0; j < 3; j++) {
-                linha += matrizAtual[i][j] + " | ";
-            }
-        }
-        IO.println(linha);
+        imprimirJogoAtual(matrizAtual);
 
         int escolha = verificarPosicaoJogadorValida(matrizAtual) - 1;
 
@@ -189,7 +193,13 @@ public class Principal {
 
         int contadorPosicoesLivres = verificarContadorPosicoesLivres(matrizAtual);
 
-        return aleatorio.nextInt(contadorPosicoesLivres);
+        int jogadaLinearDoRobo = aleatorio.nextInt(contadorPosicoesLivres);
+
+        IO.println("O robô jogou na posição %d".formatted(jogadaLinearDoRobo+1));
+
+        imprimirJogoAtual(matrizAtual);
+
+        return jogadaLinearDoRobo;
     }
 
     static void escreverJogadaNaMatrizAtual(int posicaoLinear, char[][] matrizAtual, char skin){
@@ -204,7 +214,7 @@ public class Principal {
 
         IO.println("Sorteando o primeiro a jogar...");
 
-        int primeiroAjogar = aleatorio.nextInt(1);
+        int primeiroAjogar = aleatorio.nextInt(2);
         if (primeiroAjogar == 1) {
             IO.println("Você começa jogando.");
         }
@@ -219,36 +229,74 @@ public class Principal {
         if (proximoAjogar == 1){
             int posicaoLinearJogador = turnoDoJogador(matrizAtual, jogadaAtual);
             escreverJogadaNaMatrizAtual(posicaoLinearJogador, matrizAtual, jogador.getSkin());
-            jogadaAtual++;
             proximoAjogar--;
         }
         else {
             int posicaoLinearRoboFacil = turnoDoRoboFacil(matrizAtual);
             escreverJogadaNaMatrizAtual(posicaoLinearRoboFacil, matrizAtual, robo.getSkin());
-            jogadaAtual++;
             proximoAjogar++;
         }
 
         return proximoAjogar;
     }
 
-    static boolean verificaGanhador(char[][] matrizAtual){
-        //TODO - fazer a logica de verificar ganhador
+    static char verificaFimDeJogo(char[][] matrizAtual) {
+        for (int i = 0; i < 3; i++) {
+            if (matrizAtual[i][0] == matrizAtual[i][1] && matrizAtual[i][1] == matrizAtual[i][2]) {
+                return matrizAtual[i][0];
+            }
+        }
+
+        for (int j = 0; j < 3; j++) {
+            if (matrizAtual[0][j] == matrizAtual[1][j] && matrizAtual[1][j] == matrizAtual[2][j]) {
+                return matrizAtual[0][j];
+            }
+        }
+
+        if (matrizAtual[0][0] == matrizAtual[1][1] && matrizAtual[1][1] == matrizAtual[2][2]) {
+            return matrizAtual[0][0];
+        }
+        else if (matrizAtual[0][2] == matrizAtual[1][1] && matrizAtual[1][1] == matrizAtual[2][0]) {
+            return matrizAtual[0][2];
+        }
+
+        return ' ';
+    }
+
+    static void quemGanhou(char vencedor, Jogador jogador, Robo robo) {
+        if (jogador.getSkin() == vencedor){
+            IO.println("Parabéns, você venceu!");
+        }
+        else if (robo.getSkin() == vencedor) {
+            IO.println("O robô ganhou o jogo. Não foi dessa vez!");
+        }
+        else {
+            IO.println("Deu velha! Ninguém ganhou o jogo.");
+        }
     }
 
     static void jogarContraRoboFacil(Jogador jogador, Robo robo) {
-        char[][] matrizJogoDaVelha = new char[3][3];
+        char[][] matrizJogoDaVelha = {{' ',' ',' '}, {' ',' ',' '}, {' ',' ',' '}};
         boolean fim = false;
         int jogadaAtual = 0;
+        char vencedor = ' ';
 
         int proximoAjogar = quemComeca();
 
         do {
-
             proximoAjogar = proximaJogada(proximoAjogar, jogadaAtual, matrizJogoDaVelha, jogador, robo);
-            //fim = verificaGanhador(matrizJogoDaVelha);
-
+            vencedor = verificaFimDeJogo(matrizJogoDaVelha);
+            if(vencedor != ' '){
+                fim = true;
+            }
+            else if (verificarContadorPosicoesLivres(matrizJogoDaVelha) == 0) {
+                fim = true;
+            }
+            else {
+                jogadaAtual++;
+            }
         } while (!fim);
+        quemGanhou(vencedor, jogador, robo);
     }
 
     static void jogarContraOutraPessoa() {
@@ -291,7 +339,7 @@ public class Principal {
             switch (escolha){
                 case 1 -> {
                     jogoContraRoboFacil();
-                    boolean jogarDeNovo = jogarNovamente();
+                    jogarDeNovo = jogarNovamente();
                 }
                 case 2 -> {
                     IO.println("-=-=- Você selecionou: 2 - Jogar contra outra pessoa -=-=-");
