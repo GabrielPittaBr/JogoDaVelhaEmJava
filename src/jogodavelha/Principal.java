@@ -128,7 +128,7 @@ public class Principal {
         Tabuleiro jogoDaVelha = new Tabuleiro();
         boolean fim = false;
         int jogadaAtual = 0;
-        char vencedor = ' ';
+        char vencedor;
 
         int proximoAjogar = quemComeca(jogador1.getNome(), jogador2.getNome());
 
@@ -166,14 +166,48 @@ public class Principal {
         return resp == 's';
     }
 
-    static void jogoContraRoboFacil(){
+    static int escolherDificuldade() {
+        int dificuldade = 0;
+        boolean erro;
+
+        do {
+            try {
+                IO.println("Escolha a dificuldade do robô:");
+                IO.println("1 - Fácil");
+                IO.println("2 - Difícil");
+                dificuldade = Integer.parseInt(IO.readln("> "));
+                if (dificuldade != 1 && dificuldade != 2) {
+                    IO.println("Por favor, digite uma opção válida.");
+                    erro = true;
+                } else {
+                    erro = false;
+                }
+            } catch (NumberFormatException erroDigitouLetra) {
+                IO.println("Por favor, digite um número!");
+                erro = true;
+            } catch (Exception erroDesconhecido) {
+                IO.println("Algum erro desconhecido aconteceu.");
+                IO.println(erroDesconhecido);
+                erro = true;
+            }
+        } while (erro);
+
+        return dificuldade;
+    }
+
+    static void jogoContraRobo(){
         IO.println("-=-=- Você selecionou: 1 - Jogar contra Robô -=-=-");
 
         Jogador jogador1 = new Jogador(pedirNome(), pedirSkin());
 
-        Robo roboFacil = new Robo("Robô fácil", jogador1.getSkin());
+        int dificuldade = escolherDificuldade();
 
-        jogarPartida(jogador1, roboFacil);
+        Robo robo = switch (dificuldade) {
+            case 2 -> new RoboDificil("Robô difícil", jogador1.getSkin());
+            default -> new Robo("Robô fácil", jogador1.getSkin());
+        };
+
+        jogarPartida(jogador1, robo);
     }
 
     static void jogoContraOutraPessoa() {
@@ -201,7 +235,7 @@ public class Principal {
             int escolha = telaInicial();
             switch (escolha){
                 case 1 -> {
-                    jogoContraRoboFacil();
+                    jogoContraRobo();
                     jogarDeNovo = jogarNovamente();
                 }
                 case 2 -> {
@@ -213,9 +247,8 @@ public class Principal {
                     oQueEisso();
                     jogarDeNovo = jogarNovamente();
                 }
-                default -> {
-                    IO.println("Erro extremo");
-                }
+                default -> IO.println("Erro desconhecido");
+
             }
         } while (jogarDeNovo);
         IO.println("Obrigado por jogar!");
